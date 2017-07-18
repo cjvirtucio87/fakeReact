@@ -210,13 +210,29 @@ var FakeReact = (function() {
 function Button(props = {}) {
     var onClick = props.onClick;
     return {
-        type: 'button',
+        type: 'div',
         props: {
-            className: 'Button',
-            onClick: onClick
+            className: 'row'
         },
         children: [
-            'Click me!'
+            {
+                type: 'div',
+                props: {
+                    className: 'col'
+                },
+                children: [
+                    {
+                        type: 'button',
+                        props: {
+                            className: 'Button',
+                            onClick: onClick
+                        },
+                        children: [
+                            'Click me!'
+                        ]
+                    }
+                ]
+            }
         ]
     };
 }
@@ -238,14 +254,30 @@ function Comment(props = {}) {
 function Comments(props = {}) {
     var isRedClass = props.isRed ? " isRed" : "";
     return {
-        type: 'ul',
+        type: 'div',
         props: {
-            className: 'Comments'
+            className: 'row'
         },
-        // cannot be an array of arrays; must always be an array of objects
-        children: props.comments.map(function(comment) {
-            return Comment({isRedClass: isRedClass, comment: comment});
-        })
+        children: [
+            {
+                type: 'div',
+                props: {
+                    className: 'col'
+                },
+                children: [
+                    {
+                        type: 'ul',
+                        props: {
+                            className: 'Comments'
+                        },
+                        // cannot be an array of arrays; must always be an array of objects
+                        children: props.comments.map(function(comment) {
+                            return Comment({isRedClass: isRedClass, comment: comment});
+                        })
+                    }
+                ]
+            }
+        ]
     };
 }
 
@@ -261,7 +293,11 @@ var CommentsBox = (function(react, Comments, Button) {
                 }],
                 isRed: false
             };
-        }
+        };
+
+        self.onRender = function() {
+            console.log("From CommentsBox!");
+        };
 
         self.updateCommentColor = function(ev) {
             ev.preventDefault();
@@ -272,11 +308,19 @@ var CommentsBox = (function(react, Comments, Button) {
             return {
                 type: 'div',
                 props: {
-                    className: 'CommentsBox'
-                },
+                    className: 'CommentsBox' + ' row'
+                }, 
                 children: [
-                    Comments({isRed: self.state.isRed, comments: self.state.comments}),
-                    Button({onClick: self.updateCommentColor})
+                    {
+                        type: 'div',
+                        props: {
+                            className: 'col'
+                        },
+                        children: [
+                            Comments({isRed: self.state.isRed, comments: self.state.comments}),
+                            Button({onClick: self.updateCommentColor})
+                        ]
+                    }
                 ]
             };
         }
@@ -316,6 +360,7 @@ var OfficeActionEditor = (function(ckEditor, ContentEditable) {
         var self = this;
 
         self.onRender = function() {
+            console.log("From OAEditor!");
             ckEditor.disableAutoInline = true;
             ckEditor.inline('ContentEditable');
         };
@@ -324,10 +369,18 @@ var OfficeActionEditor = (function(ckEditor, ContentEditable) {
             return {
                 type: 'div',
                 props: {
-                    className: 'OfficeActionEditor'
+                    className: 'OfficeActionEditor row'
                 },
                 children: [
-                    ContentEditable()
+                    {
+                        type: 'div',
+                        props: {
+                            className: 'col'
+                        },
+                        children: [
+                            ContentEditable()
+                        ]
+                    }
                 ]
             }
         };
@@ -340,6 +393,10 @@ var App = (function(react, CommentsBox, OfficeActionEditor) {
 
         self.onInit = function(){};
 
+        self.onRender = function() {
+            console.log("From App!");
+        };
+
         self.render = function() {
             var commentsBox = new CommentsBox();
             var editor = new OfficeActionEditor();
@@ -347,7 +404,7 @@ var App = (function(react, CommentsBox, OfficeActionEditor) {
             return {
                 type: 'div',
                 props: {
-                    className: 'App'
+                    className: 'App' + ' container'
                 },
                 children: [
                     commentsBox,
