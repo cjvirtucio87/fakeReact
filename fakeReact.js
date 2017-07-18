@@ -77,7 +77,7 @@ var FakeReact = (function() {
         } else if (key === 'className') {
             var id = value.match(/(^\w+)/)[0];
             $target.setAttribute('class', value);
-            $target.setAttribute('id', value);
+            $target.setAttribute('id', id);
         } else if (typeof value === 'boolean') {
             setBooleanProp($target, key, value);
         } else {
