@@ -5,6 +5,8 @@ var FakeReact = (function() {
     */
     var stub = {};
 
+    stub.onRenderHooks = [];
+
     function setBooleanProp($target, key, value) {
         if (value) {
             $target.setAttribute(key, value);
@@ -112,6 +114,13 @@ var FakeReact = (function() {
         if (typeof node === 'string') {
             return document.createTextNode(node);
         }
+
+        // we know it's a class member if it has a render function
+        if (node.render) {
+            if (node.onRender) stub.onRenderHooks.push(node.onRender);
+            return stub.createElement(node.render());
+        }
+
         var $el = document.createElement(node.type);
         setProps($el, node.props);
         addEventListeners($el, node.props);
@@ -191,6 +200,8 @@ var FakeReact = (function() {
         rootComponentInstance.onInit();
         var $root = document.getElementById('root');
         $root.appendChild(stub.createElement(rootComponentInstance.render()));
+        // onRenderHooks are executed once we append the tree to the $root
+        stub.onRenderHooks.forEach(function(hook) { hook() });
     }
 
     return stub;
@@ -339,8 +350,8 @@ var App = (function(react, CommentsBox, OfficeActionEditor) {
                     className: 'App'
                 },
                 children: [
-                    commentsBox.render(),
-                    editor.render()
+                    commentsBox,
+                    editor
                 ]
             }
         }
