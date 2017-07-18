@@ -337,7 +337,7 @@ var ContentEditable = (function() {
             },
             children: [
                 {
-                    type: 'h1',
+                    type: 'strong',
                     props: {},
                     children: [
                         'Inline editing in action!'
