@@ -68,14 +68,13 @@ var FakeReact = (function() {
     }
 
     function addEventListeners($target, props) {
-        Object.keys(props).forEach(function(key) {
-            if (isEventProp(key)) {
-                $target.addEventListener(
-                    extractEventName(key),
-                    props[key]
-                )
-            }
-        });
+        Object.keys(props).reduce(function($target,key) {
+            if (isEventProp(key)) $target.addEventListener(
+                extractEventName(key),
+                props[key]
+            );
+            return $target;
+        }, $target);
     }
 
     function setProp($target, key, value) {
