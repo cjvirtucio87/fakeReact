@@ -95,7 +95,7 @@ var FakeReact = (function() {
         return $target;
     }
 
-    function setProps($target, props) {
+    function setProps($target, props = {}) {
         return Object.keys(props).reduce(function($target, key) {
             return setProp($target, key, props[key]);
         }, $target);
@@ -319,7 +319,7 @@ function Posts(props = {}) {
         props: {
             className: 'Posts',
         },
-        children: posts.slice(0,5).map(function(post, i) {
+        children: posts.slice(0,3).map(function(post, i) {
             return Post({post: post, index: i});
         })
     }
@@ -401,6 +401,19 @@ var CommentsBox = (function(react, Comments, RedButton, NewCommentButton, Remove
             react.setState.call(self, { comments: newComments }, 'CommentsBox', 1);
         }
 
+        self.insertComment = function(ev) {
+            ev.preventDefault();
+            var oldComments = self.state.comments;
+            var newComments = Object.assign([], oldComments);
+            var index = oldComments.length > 4 ? 3 : 0;
+            if (index) {
+                newComments.splice(index, 0, { title: 'inserted comment', body: 'inserted one'});
+            } else {
+                newComments.push({ title: 'another comment', body: 'another one'});
+            }
+            react.setState.call(self, { comments: newComments }, 'CommentsBox', 1);
+        }
+
         self.removeComment = function(ev) {
             ev.preventDefault();
             var oldComments = self.state.comments;
@@ -424,7 +437,7 @@ var CommentsBox = (function(react, Comments, RedButton, NewCommentButton, Remove
                         children: [
                             Comments({isRed: self.state.isRed, comments: self.state.comments}),
                             RedButton({onClick: self.updateCommentColor}),
-                            NewCommentButton({onClick: self.addComment}),
+                            NewCommentButton({onClick: self.insertComment}),
                             RemoveCommentButton({onClick: self.removeComment})
                         ]
                     }
