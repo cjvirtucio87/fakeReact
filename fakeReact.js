@@ -275,6 +275,48 @@ var RemoveCommentButton = Button('Remove Comment');
 var SendOAButton = Button('Send');
 var InsertOAButton = Button('Insert');
 
+function Post(props = {}) {
+    var post = props.post
+    var index = props.index;
+    return {
+        type: 'div',
+        props: {
+            className: 'Post',
+            index: index
+        },
+        children: [
+            {
+                type: 'p',
+                props: {},
+                children: [
+                    '[TITLE] ' + post.title
+                ]
+            },
+            {
+                type: 'p',
+                props: {},
+                children: [
+                    '[BODY] ' + post.body
+                ]
+            }
+        ]
+    }
+}
+
+function Posts(props = {}) {
+    var posts = props.posts;
+    debugger;
+    return {
+        type: 'div',
+        props: {
+            className: 'Posts',
+        },
+        children: posts.map(function(post, i) {
+            return Post({post: post, index: i});
+        })
+    }
+}
+
 function Comment(props = {}) {
     var comment = props.comment || {};
     var output = {
@@ -435,12 +477,13 @@ var ContentEditable = (function() {
     }
 })();
 
-var OfficeActionEditor = (function(constants, client, ckEditor, ContentEditable, SendOAButton, InsertOAButton) {
+var OfficeActionEditor = (function(react, constants, client, ckEditor, ContentEditable, SendOAButton, InsertOAButton, Posts) {
     return function(props) {
         var self = this;
 
         self.state = {
-            editorInstance: {}
+            editorInstance: {},
+            posts: []
         };
 
         self.onMount = function() {
@@ -454,7 +497,12 @@ var OfficeActionEditor = (function(constants, client, ckEditor, ContentEditable,
         self.fetchData = function() {
             client.get(constants.BASE_URI + '/posts')
                 .then(function(res) {
-                    console.log(res);
+                    var oldPosts = [];
+                    var newPosts = oldPosts.concat(res);
+                    react.setState.call(self, { posts: newPosts }, 'OfficeActionEditor', 0);
+                })
+                .catch(function(err) {
+                    console.log(err);
                 });
         }
 
@@ -485,14 +533,15 @@ var OfficeActionEditor = (function(constants, client, ckEditor, ContentEditable,
                         children: [
                             SendOAButton({onClick: self.getOAHtml}),
                             InsertOAButton({onClick: self.insertOAHtml}),
-                            ContentEditable()
+                            ContentEditable(),
+                            Posts({posts: self.state.posts})
                         ]
                     }
                 ]
             }
         };
     }
-})(constants, Client, CKEDITOR, ContentEditable, SendOAButton, InsertOAButton);
+})(FakeReact, constants, Client, CKEDITOR, ContentEditable, SendOAButton, InsertOAButton, Posts);
 
 var App = (function(react, CommentsBox, OfficeActionEditor) {
     return function() {
