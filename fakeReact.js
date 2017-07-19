@@ -380,7 +380,7 @@ var ContentEditable = (function() {
                     type: 'strong',
                     props: {},
                     children: [
-                        'Inline editing in action!'
+                        'Welcome to the Office Action Editor!'
                     ]
                 },
                 {
@@ -388,6 +388,27 @@ var ContentEditable = (function() {
                     props: {},
                     children: [
                         "The 'div' element that contains this text is now editable",
+                    ]
+                },
+                {
+                    type: 'p',
+                    props: {},
+                    children: [
+                        "Start typing!",
+                    ]
+                },
+                {
+                    type: 'p',
+                    props: {},
+                    children: [
+                        "Click the 'send' button to view the raw html in the editor.",
+                    ]
+                },
+                {
+                    type: 'p',
+                    props: {},
+                    children: [
+                        "Click the 'insert' button to insert raw html at the cursor's position.",
                     ]
                 }
             ]
@@ -413,6 +434,7 @@ var OfficeActionEditor = (function(ckEditor, ContentEditable, SendOAButton, Inse
         self.getOAHtml = function(ev) {
             var instance = self.state.editorInstance;
             var data = instance.getData();
+            console.log(data);
             return data;
         };
 
