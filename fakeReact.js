@@ -253,6 +253,7 @@ function Button(label) {
 var RedButton = Button('Red');
 var NewCommentButton = Button('Add Comment');
 var RemoveCommentButton = Button('Remove Comment');
+var SendOAButton = Button('Send');
 
 function Comment(props = {}) {
     var comment = props.comment || {};
@@ -393,14 +394,18 @@ var ContentEditable = (function() {
     }
 })();
 
-var OfficeActionEditor = (function(ckEditor, ContentEditable) {
-    return function() {
+var OfficeActionEditor = (function(ckEditor, ContentEditable, SendOAButton) {
+    return function(props) {
         var self = this;
 
         self.onRender = function() {
             console.log("From OAEditor!");
             ckEditor.disableAutoInline = true;
             ckEditor.inline('ContentEditable');
+        };
+
+        self.getOAText = function(ev) {
+            console.log(ckEditor.instances['ContentEditable'].getData());
         };
 
         self.render = function(){
@@ -416,14 +421,15 @@ var OfficeActionEditor = (function(ckEditor, ContentEditable) {
                             className: 'col'
                         },
                         children: [
-                            ContentEditable()
+                            ContentEditable(),
+                            SendOAButton({onClick: self.getOAText})
                         ]
                     }
                 ]
             }
         };
     }
-})(CKEDITOR, ContentEditable);
+})(CKEDITOR, ContentEditable, SendOAButton);
 
 var App = (function(react, CommentsBox, OfficeActionEditor) {
     return function() {
