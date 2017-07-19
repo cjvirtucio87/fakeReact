@@ -254,6 +254,7 @@ var RedButton = Button('Red');
 var NewCommentButton = Button('Add Comment');
 var RemoveCommentButton = Button('Remove Comment');
 var SendOAButton = Button('Send');
+var InsertOAButton = Button('Insert');
 
 function Comment(props = {}) {
     var comment = props.comment || {};
@@ -386,7 +387,7 @@ var ContentEditable = (function() {
                     type: 'p',
                     props: {},
                     children: [
-                        "The 'div' element that contains this text is now editable"
+                        "The 'div' element that contains this text is now editable",
                     ]
                 }
             ]
@@ -394,19 +395,31 @@ var ContentEditable = (function() {
     }
 })();
 
-var OfficeActionEditor = (function(ckEditor, ContentEditable, SendOAButton) {
+var OfficeActionEditor = (function(ckEditor, ContentEditable, SendOAButton, InsertOAButton) {
     return function(props) {
         var self = this;
+
+        self.state = {
+            editorInstance: {}
+        };
 
         self.onRender = function() {
             console.log("From OAEditor!");
             ckEditor.disableAutoInline = true;
             ckEditor.inline('ContentEditable');
+            self.state.editorInstance = ckEditor.instances['ContentEditable'];
         };
 
         self.getOAText = function(ev) {
-            console.log(ckEditor.instances['ContentEditable'].getData());
+            var instance = self.state.editorInstance;
+            var data = instance.getData();
+            return data;
         };
+
+        self.insertOAText = function() {
+            var instance = self.state.editorInstance;
+            instance.insertHtml('<p>Hello, world!</p>');
+        }
 
         self.render = function(){
             return {
@@ -421,25 +434,22 @@ var OfficeActionEditor = (function(ckEditor, ContentEditable, SendOAButton) {
                             className: 'col'
                         },
                         children: [
-                            ContentEditable(),
-                            SendOAButton({onClick: self.getOAText})
+                            SendOAButton({onClick: self.getOAText}),
+                            InsertOAButton({onClick: self.insertOAText}),
+                            ContentEditable()
                         ]
                     }
                 ]
             }
         };
     }
-})(CKEDITOR, ContentEditable, SendOAButton);
+})(CKEDITOR, ContentEditable, SendOAButton, InsertOAButton);
 
 var App = (function(react, CommentsBox, OfficeActionEditor) {
     return function() {
         var self = this;
 
         self.onInit = function(){};
-
-        self.onRender = function() {
-            console.log("From App!");
-        };
 
         self.render = function() {
             var commentsBox = new CommentsBox();
