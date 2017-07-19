@@ -149,7 +149,7 @@ var FakeReact = (function() {
             setProps($newNode, newNode.props);
             $parent.appendChild($newNode);
         } else if (!newNode) {
-            $parent.removeChild($parent.childNodes(index));
+            $parent.removeChild($parent.childNodes[index]);
         } else if (changed(newNode, oldNode)) {
             $newNode = stub.createElement(newNode);
             setProps($newNode, newNode.props);
@@ -259,7 +259,8 @@ function Comment(props = {}) {
     var output = {
         type: 'li',
         props: {
-            className: 'Comment' + props.isRedClass
+            className: 'Comment' + props.isRedClass,
+            index: props.index
         },
         children: [
             '[' + comment.title + ']' + comment.body
@@ -288,8 +289,8 @@ function Comments(props = {}) {
                             className: 'Comments'
                         },
                         // cannot be an array of arrays; must always be an array of objects
-                        children: props.comments.map(function(comment) {
-                            return Comment({isRedClass: isRedClass, comment: comment});
+                        children: props.comments.map(function(comment, i) {
+                            return Comment({isRedClass: isRedClass, comment: comment, index: i});
                         })
                     }
                 ]
@@ -298,7 +299,7 @@ function Comments(props = {}) {
     };
 }
 
-var CommentsBox = (function(react, Comments, RedButton, NewCommentButton) {
+var CommentsBox = (function(react, Comments, RedButton, NewCommentButton, RemoveCommentButton) {
     return function(props = {}) {
         var self = this;
 
@@ -330,6 +331,14 @@ var CommentsBox = (function(react, Comments, RedButton, NewCommentButton) {
             react.setState.call(self, { comments: newComments }, 'CommentsBox', 1);
         }
 
+        self.removeComment = function(ev) {
+            ev.preventDefault();
+            var oldComments = self.state.comments;
+            var newComments = Object.assign([], oldComments);
+            newComments.pop();
+            react.setState.call(self, { comments: newComments }, 'CommentsBox', 1);
+        }
+
         self.render = function() {
             return {
                 type: 'div',
@@ -345,14 +354,15 @@ var CommentsBox = (function(react, Comments, RedButton, NewCommentButton) {
                         children: [
                             Comments({isRed: self.state.isRed, comments: self.state.comments}),
                             RedButton({onClick: self.updateCommentColor}),
-                            NewCommentButton({onClick: self.addComment})
+                            NewCommentButton({onClick: self.addComment}),
+                            RemoveCommentButton({onClick: self.removeComment})
                         ]
                     }
                 ]
             };
         }
     }
-})(FakeReact, Comments, RedButton, NewCommentButton);
+})(FakeReact, Comments, RedButton, NewCommentButton, RemoveCommentButton);
 
 var ContentEditable = (function() {
     return function(props) {
