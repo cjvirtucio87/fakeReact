@@ -5,7 +5,7 @@ var FakeReact = (function() {
     */
     var stub = {};
 
-    stub.onRenderHooks = [];
+    stub.onMountHooks = [];
 
     function setBooleanProp($target, key, value) {
         if (value) {
@@ -120,7 +120,7 @@ var FakeReact = (function() {
 
         // we know it's a class member if it has a render function
         if (node.render) {
-            if (node.onRender) stub.onRenderHooks.push(node.onRender);
+            if (node.onMount) stub.onMountHooks.push(node.onMount);
             return stub.createElement(node.render());
         }
 
@@ -211,12 +211,31 @@ var FakeReact = (function() {
         rootComponentInstance.onInit();
         var $root = document.getElementById('root');
         $root.appendChild(stub.createElement(rootComponentInstance.render()));
-        // onRenderHooks are executed once we append the tree to the $root
-        stub.onRenderHooks.forEach(function(hook) { hook() });
+        // onMountHooks are executed once we append the tree to the $root
+        stub.onMountHooks.forEach(function(hook) { hook() });
     }
 
     return stub;
 })();
+
+var constants = {
+    BASE_URI: 'https://jsonplaceholder.typicode.com'
+};
+
+var Client = (function(restFn){
+    var stub = {};
+
+    stub.get = function(url, payload, headers) {
+        return restFn({
+            url: url,
+            data: payload,
+            headers: headers,
+            method: 'GET'
+        });
+    }
+
+    return stub;
+})($.ajax);
 
 function Button(label) {
     return function(props = {}) {
@@ -315,7 +334,7 @@ var CommentsBox = (function(react, Comments, RedButton, NewCommentButton, Remove
             };
         };
 
-        self.onRender = function() {
+        self.onMount = function() {
             console.log("From CommentsBox!");
         };
 
@@ -416,7 +435,7 @@ var ContentEditable = (function() {
     }
 })();
 
-var OfficeActionEditor = (function(ckEditor, ContentEditable, SendOAButton, InsertOAButton) {
+var OfficeActionEditor = (function(constants, client, ckEditor, ContentEditable, SendOAButton, InsertOAButton) {
     return function(props) {
         var self = this;
 
@@ -424,12 +443,20 @@ var OfficeActionEditor = (function(ckEditor, ContentEditable, SendOAButton, Inse
             editorInstance: {}
         };
 
-        self.onRender = function() {
+        self.onMount = function() {
             console.log("From OAEditor!");
             ckEditor.disableAutoInline = true;
             ckEditor.inline('ContentEditable');
             self.state.editorInstance = ckEditor.instances['ContentEditable'];
+            self.fetchData();
         };
+
+        self.fetchData = function() {
+            client.get(constants.BASE_URI + '/posts')
+                .then(function(res) {
+                    console.log(res);
+                });
+        }
 
         self.getOAHtml = function(ev) {
             var instance = self.state.editorInstance;
@@ -465,7 +492,7 @@ var OfficeActionEditor = (function(ckEditor, ContentEditable, SendOAButton, Inse
             }
         };
     }
-})(CKEDITOR, ContentEditable, SendOAButton, InsertOAButton);
+})(constants, Client, CKEDITOR, ContentEditable, SendOAButton, InsertOAButton);
 
 var App = (function(react, CommentsBox, OfficeActionEditor) {
     return function() {
