@@ -309,7 +309,7 @@ function Posts(props = {}) {
         props: {
             className: 'Posts',
         },
-        children: posts.map(function(post, i) {
+        children: posts.slice(0,5).map(function(post, i) {
             return Post({post: post, index: i});
         })
     }
@@ -529,9 +529,30 @@ var OfficeActionEditor = (function(react, constants, client, ckEditor, ContentEd
                             className: 'col'
                         },
                         children: [
+                            {
+                                type: 'strong',
+                                props:{},
+                                children: [
+                                    'OA BUTTONS'
+                                ]
+                            },
                             SendOAButton({onClick: self.getOAHtml}),
                             InsertOAButton({onClick: self.insertOAHtml}),
+                            {
+                                type: 'strong',
+                                props:{},
+                                children: [
+                                    'OFFICE ACTION EDITOR'
+                                ]
+                            },
                             ContentEditable(),
+                            {
+                                type: 'strong',
+                                props:{},
+                                children: [
+                                    'POSTS'
+                                ]
+                            },
                             Posts({posts: self.state.posts})
                         ]
                     }
