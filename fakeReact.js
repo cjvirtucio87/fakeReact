@@ -105,7 +105,6 @@ var FakeReact = (function() {
         (3) the nodes are not strings, and are therefore VDOM nodes, but have different VDOM types
     */
     function changed(newNode, oldNode) {
-        debugger
         return typeof newNode !== typeof oldNode
             || typeof newNode === 'string' && newNode !== oldNode
             || newNode.type !== oldNode.type;
@@ -144,6 +143,7 @@ var FakeReact = (function() {
         Identical nodes in both trees implies that we must drill down further for changes.
     */
     stub.updateElement = function($parent, newNode, oldNode, index = 0) {
+        if ($parent && $parent.ignore) return;
         if (!oldNode) {
             $newNode = stub.createElement(newNode);
             setProps($newNode, newNode.props);
@@ -155,24 +155,25 @@ var FakeReact = (function() {
             setProps($newNode, newNode.props);
             $parent.replaceChild($newNode, $parent.childNodes[index]);
         // depth-first traversal of both VDOM trees
-    } else if (newNode.type) {
-            if (typeof $parent.childNodes[index].data !== 'string') {
+        } else if (newNode.type) {
+                // if (typeof $parent.childNodes[index].data !== 'string') {
                 updateProps(
                     $parent.childNodes[index],
                     newNode.props,
                     oldNode.props
                 );
+                // }
+                var newLength = newNode.children.length;
+                var oldLength = oldNode.children.length;
+                for (var i = 0; i < newLength || i < oldLength; i++) {
+                    stub.updateElement(
+                        $parent.childNodes[index],
+                        newNode.children[i],
+                        oldNode.children[i],
+                        i
+                    );
+                }
             }
-            var newLength = newNode.children.length;
-            var oldLength = oldNode.children.length;
-            for (var i = 0; i < newLength || i < oldLength; i++) {
-                stub.updateElement(
-                    $parent.childNodes[index],
-                    newNode.children[i],
-                    oldNode.children[i]
-                );
-            }
-        }
     };
 
     /*
@@ -180,25 +181,29 @@ var FakeReact = (function() {
         (2) Update state.
         (3) Retrieve the updated VDOM node.
         (4) Call updateElement.
+
+        Be sure to pass the index of the newNode in the $parent's children array.
+        This represents the position of the newNode relative to the siblings.
     */
-    function render(prevState, nextState, rootComponent, id) {
+    function render(prevState, nextState, rootComponent, id, index) {
         var oldNode = rootComponent.render();
         rootComponent.state = Object.assign(prevState, nextState);
-        var newNode = rootComponent.render()
+        var newNode = rootComponent.render();
         stub.updateElement(
-            document.getElementById(id),
+            document.getElementById(id).parentNode,
             newNode,
-            oldNode
+            oldNode,
+            index
         );
     }
 
     /*
         setState must be called with the component's 'this' to bind it the function and manipulate its state.
     */
-    stub.setState = function(nextState, id) {
+    stub.setState = function(nextState, id, index) {
         var componentSelf = this;
         var prevState = componentSelf.state;
-        render(prevState, nextState, componentSelf, id);
+        render(prevState, nextState, componentSelf, id, index);
     };
 
     stub.mount = function(rootComponent) {
@@ -213,35 +218,41 @@ var FakeReact = (function() {
     return stub;
 })();
 
-function Button(props = {}) {
-    var onClick = props.onClick;
-    return {
-        type: 'div',
-        props: {
-            className: 'row'
-        },
-        children: [
-            {
-                type: 'div',
-                props: {
-                    className: 'col'
-                },
-                children: [
-                    {
-                        type: 'button',
-                        props: {
-                            className: 'Button',
-                            onClick: onClick
-                        },
-                        children: [
-                            'Click me!'
-                        ]
-                    }
-                ]
-            }
-        ]
-    };
+function Button(label) {
+    return function(props = {}) {
+        var onClick = props.onClick;
+        return {
+            type: 'div',
+            props: {
+                className: 'row'
+            },
+            children: [
+                {
+                    type: 'div',
+                    props: {
+                        className: 'col'
+                    },
+                    children: [
+                        {
+                            type: 'button',
+                            props: {
+                                className: 'Button',
+                                onClick: onClick
+                            },
+                            children: [
+                                label
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+    }
 }
+
+var RedButton = Button('Red');
+var NewCommentButton = Button('Add Comment');
+var RemoveCommentButton = Button('Remove Comment');
 
 function Comment(props = {}) {
     var comment = props.comment || {};
@@ -287,7 +298,7 @@ function Comments(props = {}) {
     };
 }
 
-var CommentsBox = (function(react, Comments, Button) {
+var CommentsBox = (function(react, Comments, RedButton, NewCommentButton) {
     return function(props = {}) {
         var self = this;
 
@@ -307,14 +318,23 @@ var CommentsBox = (function(react, Comments, Button) {
 
         self.updateCommentColor = function(ev) {
             ev.preventDefault();
-            react.setState.call(self, { isRed: !self.state.isRed }, 'CommentsBox');
+            react.setState.call(self, { isRed: !self.state.isRed }, 'CommentsBox', 1);
+        }
+
+        // TODO: adding a comment appends it as a child of another comment; should be a SIBLING
+        self.addComment = function(ev) {
+            ev.preventDefault();
+            var oldComments = self.state.comments;
+            var newComments = Object.assign([], oldComments);
+            newComments.push({ title: 'another comment', body: 'another one'});
+            react.setState.call(self, { comments: newComments }, 'CommentsBox', 1);
         }
 
         self.render = function() {
             return {
                 type: 'div',
                 props: {
-                    className: 'CommentsBox' + ' row'
+                    className: 'CommentsBox row'
                 }, 
                 children: [
                     {
@@ -324,14 +344,15 @@ var CommentsBox = (function(react, Comments, Button) {
                         },
                         children: [
                             Comments({isRed: self.state.isRed, comments: self.state.comments}),
-                            Button({onClick: self.updateCommentColor})
+                            RedButton({onClick: self.updateCommentColor}),
+                            NewCommentButton({onClick: self.addComment})
                         ]
                     }
                 ]
             };
         }
     }
-})(FakeReact, Comments, Button);
+})(FakeReact, Comments, RedButton, NewCommentButton);
 
 var ContentEditable = (function() {
     return function(props) {
@@ -339,7 +360,8 @@ var ContentEditable = (function() {
             type: 'div',
             props: {
                 className: 'ContentEditable',
-                contenteditable: true
+                contenteditable: true,
+                ignore: true
             },
             children: [
                 {
@@ -384,13 +406,7 @@ var OfficeActionEditor = (function(ckEditor, ContentEditable) {
                             className: 'col'
                         },
                         children: [
-                            {
-                                type: 'div',
-                                props: {},
-                                children: [
-                                    ContentEditable()
-                                ]
-                            }
+                            ContentEditable()
                         ]
                     }
                 ]
