@@ -141,6 +141,7 @@ var FakeReact = (function() {
         A node in the old tree and not in the new tree implies that the node was removed.
         A node in the new tree that's different from the node in the old tree implies a change.
         Identical nodes in both trees implies that we must drill down further for changes.
+        Ignore trees that are marked for ignore.
     */
     stub.updateElement = function($parent, newNode, oldNode, index = 0) {
         if ($parent && $parent.ignore) return;
