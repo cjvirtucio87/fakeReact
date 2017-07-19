@@ -15,29 +15,29 @@ var FakeReact = (function() {
     stub.onMountHooks = [];
 
     function setBooleanProp($target, key, value) {
-        if (value) {
-            $target.setAttribute(key, value);
-            $target[key] = true;
-        } else {
-            $target[key] = false;
-        }
+        if (!!value) $target.setAttribute(key, value);
+        $target[key] = !!value;
+        return $target;
     }
 
     function removeBooleanProp($target, key) {
         $target.removeAttribute(key);
         $target[key] = false;
+        return $target;
     }
 
     function removeProp($target, key, value) {
-        if (isCustomProp) {
-            return;
-        } else if (name === 'className') {
-            $target.removeAttribute('class');
-        } else if (typeof value === 'boolean') {
-            removeBooleanProp($target, key);
-        } else {
-            $target.removeAttribute(key);
-        }
+        if (!isCustomProp(key)) {
+            if (name === 'className') {
+                $target.removeAttribute('class');
+            } else if (typeof value === 'boolean') {
+                removeBooleanProp($target, key);
+            } else {
+                $target.removeAttribute(key);
+            }
+        } 
+
+        return $target;
     }
 
     /*
@@ -53,6 +53,8 @@ var FakeReact = (function() {
         } else if (!oldVal || newVal !== oldVal) {
             setProp($target, key, newVal);
         }
+
+        return $target;
     }
 
     function isCustomProp(key) {
@@ -78,30 +80,32 @@ var FakeReact = (function() {
     }
 
     function setProp($target, key, value) {
-        if (isCustomProp(key)) {
-            return;
-        } else if (key === 'className') {
-            var id = value.match(/(^\w+)/)[0];
-            $target.setAttribute('class', value);
-            if (/^[A-Z]{1}/.test(id)) { $target.setAttribute('id', id); }
-        } else if (typeof value === 'boolean') {
-            setBooleanProp($target, key, value);
-        } else {
-            $target.setAttribute(key, value);
+        if (!isCustomProp(key)) {
+            if (key === 'className') {
+                var id = value.match(/(^\w+)/)[0];
+                $target.setAttribute('class', value);
+                if (/^[A-Z]{1}/.test(id)) { $target.setAttribute('id', id); }
+            } else if (typeof value === 'boolean') {
+                setBooleanProp($target, key, value);
+            } else {
+                $target.setAttribute(key, value);
+            }
         }
+
+        return $target;
     }
 
     function setProps($target, props) {
-        Object.keys(props).forEach(function(key) {
-            setProp($target, key, props[key]);
-        });
+        return Object.keys(props).reduce(function($target, key) {
+            return setProp($target, key, props[key]);
+        }, $target);
     }
 
     function updateProps($target, newProps, oldProps = {}) {
         var props = Object.assign({}, newProps, oldProps);
-        Object.keys(props).forEach(function(key) {
-            updateProp($target, key, newProps[key], oldProps[key]);
-        });
+        return Object.keys(props).reduce(function($target, key) {
+            return updateProp($target, key, newProps[key], oldProps[key]);
+        }, $target);
     }
 
     /*
@@ -152,7 +156,7 @@ var FakeReact = (function() {
     stub.updateElement = function($parent, newNode, oldNode, index = 0) {
         if ($parent && $parent.ignore) return;
         if (!oldNode) {
-            $newNode = stub.createElement(newNode);
+            var $newNode = stub.createElement(newNode);
             setProps($newNode, newNode.props);
             $parent.appendChild($newNode);
         } else if (!newNode) {
@@ -310,7 +314,6 @@ function Post(props = {}) {
 
 function Posts(props = {}) {
     var posts = props.posts;
-    debugger;
     return {
         type: 'div',
         props: {
