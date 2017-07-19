@@ -2,6 +2,13 @@ var FakeReact = (function() {
     /*
         Dollar sign implies a real dom node.
         No dollar sign implies a VDOM node.
+
+        A VDOM node implements matches the ff schema:
+        {
+            type: the DOM element to be created (e.g. 'p' for a <p> tag),
+            props: the attributes to be set on the DOM element (e.g. className for the class attribute; onClick for the click handler),
+            children: an array of the child nodes
+        }
     */
     var stub = {};
 
@@ -100,7 +107,7 @@ var FakeReact = (function() {
 
     /*
         Cases:
-        (1) one node is a string, the other a VDOM (perhaps a string was replaced with a VDOM node, or vice-versa)
+        (1) one node is a string, the other a VDOM node (perhaps a string was replaced with a VDOM node, or vice-versa)
         (2) the nodes are of the same type, are both strings, but have different values
         (3) the nodes are not strings, and are therefore VDOM nodes, but have different VDOM types
     */
@@ -221,11 +228,11 @@ var constants = {
     BASE_URI: 'https://jsonplaceholder.typicode.com'
 };
 
-var Client = (function(restFn){
+var Client = (function(ajax){
     var stub = {};
 
     stub.get = function(url, payload, headers) {
-        return restFn({
+        return ajax({
             url: url,
             data: payload,
             headers: headers,
