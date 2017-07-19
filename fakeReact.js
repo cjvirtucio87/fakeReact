@@ -410,13 +410,13 @@ var OfficeActionEditor = (function(ckEditor, ContentEditable, SendOAButton, Inse
             self.state.editorInstance = ckEditor.instances['ContentEditable'];
         };
 
-        self.getOAText = function(ev) {
+        self.getOAHtml = function(ev) {
             var instance = self.state.editorInstance;
             var data = instance.getData();
             return data;
         };
 
-        self.insertOAText = function() {
+        self.insertOAHtml = function() {
             var instance = self.state.editorInstance;
             instance.insertHtml('<p>Hello, world!</p>');
         }
@@ -434,8 +434,8 @@ var OfficeActionEditor = (function(ckEditor, ContentEditable, SendOAButton, Inse
                             className: 'col'
                         },
                         children: [
-                            SendOAButton({onClick: self.getOAText}),
-                            InsertOAButton({onClick: self.insertOAText}),
+                            SendOAButton({onClick: self.getOAHtml}),
+                            InsertOAButton({onClick: self.insertOAHtml}),
                             ContentEditable()
                         ]
                     }
