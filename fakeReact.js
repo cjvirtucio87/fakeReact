@@ -156,24 +156,22 @@ var FakeReact = (function() {
             $parent.replaceChild($newNode, $parent.childNodes[index]);
         // depth-first traversal of both VDOM trees
         } else if (newNode.type) {
-                // if (typeof $parent.childNodes[index].data !== 'string') {
-                updateProps(
+            updateProps(
+                $parent.childNodes[index],
+                newNode.props,
+                oldNode.props
+            );
+            var newLength = newNode.children.length;
+            var oldLength = oldNode.children.length;
+            for (var i = 0; i < newLength || i < oldLength; i++) {
+                stub.updateElement(
                     $parent.childNodes[index],
-                    newNode.props,
-                    oldNode.props
+                    newNode.children[i],
+                    oldNode.children[i],
+                    i
                 );
-                // }
-                var newLength = newNode.children.length;
-                var oldLength = oldNode.children.length;
-                for (var i = 0; i < newLength || i < oldLength; i++) {
-                    stub.updateElement(
-                        $parent.childNodes[index],
-                        newNode.children[i],
-                        oldNode.children[i],
-                        i
-                    );
-                }
             }
+        }
     };
 
     /*
