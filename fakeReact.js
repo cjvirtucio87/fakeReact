@@ -384,7 +384,6 @@ var CommentsBox = (function(react, Comments, RedButton, NewCommentButton, Remove
             react.setState.call(self, { isRed: !self.state.isRed }, 'CommentsBox', 1);
         }
 
-        // TODO: adding a comment appends it as a child of another comment; should be a SIBLING
         self.addComment = function(ev) {
             ev.preventDefault();
             var oldComments = self.state.comments;
